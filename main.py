@@ -3,6 +3,10 @@ import lob
 import googlemaps
 import sunlight
 
+# imports for Weather API
+import urllib2
+import json
+
 from datetime import datetime
 
 lob.api_key = "test_32f9cf853c605d272e35567fadb984b4318"
@@ -12,6 +16,7 @@ sunlight.config.API_KEY = "ed9d8054bcca4773a803aa8c9b77e79a"
 auth = tweepy.OAuthHandler('09mB3DUJsg9agik4sGw4DJ0jA', 'wM4focfIFuE8Gz3f2EX3dM3EHox4BVRNbedjNdchM24vRlRObL')
 auth.set_access_token('1559211414-3ApuTjxIy7Ivr25Vn6GXHUNSEjYa8SE9H6yCbLR', 'FosDpZ9S0pSU0omTfnbpCG8rF14S85VRVJ1wb2ngdNhgc')
 api = tweepy.API(auth)
+# Weather API setup
 
 
 def getAddressWithZip():
@@ -108,6 +113,9 @@ verifiedAddress = lob.Verification.create(
         )
 
 address = verifiedAddress["address"]["address_line1"] + ", " + verifiedAddress["address"]["address_city"] + ", " + verifiedAddress["address"]["address_state"]
+city = verifiedAddress["address"]["address_city"]
+state = verifiedAddress["address"]["address_state"]
+
 
 geocode_result = gmaps.geocode(address)
 
@@ -116,7 +124,19 @@ longitude = geocode_result[0]["geometry"]["location"]["lng"]
 
 congressList = sunlight.congress.locate_legislators_by_lat_lon(latitude, longitude)
 
-print "List of Representatives: "
+print "\n\nThanks for sharing your information! \nHere's some info about the current environment near " + address + ".\n"
+
+
+f = urllib2.urlopen('http://api.wunderground.com/api/d13977cb92663c84/geolookup/conditions/q/' + state + "/" + city.replace(" ", "_") + '.json')
+json_string = f.read()
+parsed_json = json.loads(json_string)
+location = parsed_json['location']['city']
+temp_f = parsed_json['current_observation']['temp_f']
+print "It's currently %s degrees in %s." %(temp_f, location)
+f.close()
+
+print "\n"
+print "Here's a list of Congress members who represent your area: \n"
 
 for rep in congressList:
     print rep["title"] + ". " + rep["first_name"] + " " + rep["last_name"]
