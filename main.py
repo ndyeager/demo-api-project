@@ -5,6 +5,7 @@ import sunlight
 
 # imports for Weather API
 import urllib2
+import urllib3
 import json
 
 from datetime import datetime
